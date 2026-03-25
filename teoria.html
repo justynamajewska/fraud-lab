@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teoria — Algorytmy klasyfikacji | PolBank Lab</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --teal:#1D9E75;--teal-l:#E1F5EE;--teal-d:#085041;
+  --blue:#185FA5;--blue-l:#E6F1FB;--blue-d:#0C447C;
+  --amber:#BA7517;--amber-l:#FAEEDA;--amber-d:#633806;
+  --purple:#534AB7;--purple-l:#EEEDFE;--purple-d:#26215C;
+  --red-l:#FCEBEB;--red-d:#A32D2D;
+  --g50:#F8F8F6;--g100:#F1EFE8;--g200:#D3D1C7;--g400:#888780;--g700:#444441;--g900:#1a1a18;
+  --r:10px;--rs:6px;--font:'Segoe UI',system-ui,sans-serif
+}
+body{font-family:var(--font);background:var(--g50);color:var(--g900);padding:0;margin:0}
+
+nav{background:#fff;border-bottom:1px solid var(--g200);padding:0 2rem;display:flex;align-items:center;gap:0;position:sticky;top:0;z-index:100;flex-wrap:wrap}
+.nav-logo{font-size:13px;font-weight:700;color:var(--teal);letter-spacing:.08em;padding:1rem 1.5rem 1rem 0;border-right:1px solid var(--g200);margin-right:1rem}
+.nav-btn{padding:.85rem 1.1rem;font-size:13px;color:var(--g400);background:none;border:none;cursor:pointer;font-family:var(--font);border-bottom:2px solid transparent;transition:all .15s;white-space:nowrap}
+.nav-btn:hover{color:var(--g900)}
+.nav-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:500}
+
+.page{display:none;max-width:800px;margin:0 auto;padding:2rem 1.5rem}
+.page.active{display:block}
+
+h1{font-size:24px;font-weight:600;margin-bottom:.4rem;line-height:1.3}
+h2{font-size:18px;font-weight:600;margin:2rem 0 .75rem}
+h3{font-size:15px;font-weight:600;margin:1.5rem 0 .5rem;color:var(--g700)}
+p{font-size:14px;line-height:1.8;color:var(--g700);margin-bottom:.75rem}
+.lead{font-size:15px;color:var(--g400);margin-bottom:1.5rem;line-height:1.6}
+
+.card{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:1.25rem;margin-bottom:1rem}
+.card-teal{border-left:3px solid var(--teal);border-radius:0 var(--r) var(--r) 0}
+.card-blue{border-left:3px solid var(--blue);border-radius:0 var(--r) var(--r) 0}
+.card-amber{border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0}
+.card-purple{border-left:3px solid var(--purple);border-radius:0 var(--r) var(--r) 0}
+
+.badge{display:inline-block;font-size:11px;font-weight:600;padding:2px 9px;border-radius:20px;margin-bottom:.5rem}
+.b-teal{background:var(--teal-l);color:var(--teal-d)}
+.b-blue{background:var(--blue-l);color:var(--blue-d)}
+.b-amber{background:var(--amber-l);color:var(--amber-d)}
+.b-purple{background:var(--purple-l);color:var(--purple-d)}
+
+.pros-cons{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:1rem 0}
+.pros,.cons{border-radius:var(--rs);padding:.85rem 1rem;font-size:13px;line-height:1.7}
+.pros{background:var(--teal-l);color:var(--teal-d)}
+.cons{background:var(--red-l);color:var(--red-d)}
+.pros strong,.cons strong{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem;opacity:.7}
+
+table{width:100%;border-collapse:collapse;font-size:13px;margin:1rem 0}
+th{background:var(--g100);padding:8px 12px;text-align:left;font-weight:600;color:var(--g700);border-bottom:1px solid var(--g200)}
+td{padding:8px 12px;border-bottom:1px solid var(--g100);color:var(--g700);vertical-align:top}
+tr:last-child td{border-bottom:none}
+
+.analogy{background:var(--amber-l);border-radius:var(--rs);padding:.85rem 1rem;font-size:13px;color:var(--amber-d);line-height:1.7;margin:1rem 0}
+.analogy strong{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem}
+
+.param-row{display:flex;justify-content:space-between;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--g100);font-size:13px}
+.param-row:last-child{border-bottom:none}
+.param-name{font-weight:600;color:var(--g900);min-width:160px}
+.param-desc{color:var(--g700);text-align:right;font-size:12px}
+
+canvas{display:block;width:100%;border-radius:var(--rs)}
+.chart-wrap{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:1.25rem;margin:1rem 0}
+.chart-title{font-size:13px;font-weight:600;color:var(--g900);margin-bottom:.75rem}
+.chart-sub{font-size:12px;color:var(--g400);margin-top:.5rem;line-height:1.5}
+
+.metric-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:1rem 0}
+.metric-card{border:1px solid var(--g200);border-radius:var(--r);padding:1rem;background:#fff}
+.metric-name{font-size:13px;font-weight:600;color:var(--g900);margin-bottom:.3rem}
+.metric-formula{font-family:monospace;font-size:12px;background:var(--g100);border-radius:var(--rs);padding:3px 7px;display:inline-block;margin:.25rem 0 .4rem;color:var(--g700)}
+.metric-desc{font-size:12px;color:var(--g400);line-height:1.6}
+
+.cm-wrap{display:flex;flex-direction:column;align-items:center;margin:1.5rem 0}
+.cm-grid{display:grid;grid-template-columns:auto 1fr 1fr;grid-template-rows:auto 1fr 1fr;gap:3px;font-size:13px}
+.cm-header{background:var(--g100);padding:8px 16px;text-align:center;font-weight:600;color:var(--g700);border-radius:var(--rs)}
+.cm-label{background:var(--g100);padding:8px 12px;font-weight:600;color:var(--g700);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;writing-mode:horizontal-tb}
+.cm-tp{background:#E1F5EE;color:#085041;padding:16px;text-align:center;border-radius:var(--rs);font-weight:600}
+.cm-tn{background:#E1F5EE;color:#085041;padding:16px;text-align:center;border-radius:var(--rs);font-weight:600}
+.cm-fp{background:#FAEEDA;color:#633806;padding:16px;text-align:center;border-radius:var(--rs);font-weight:600}
+.cm-fn{background:#FCEBEB;color:#A32D2D;padding:16px;text-align:center;border-radius:var(--rs);font-weight:600}
+.cm-desc{font-size:12px;display:block;font-weight:400;margin-top:3px;opacity:.8}
+.cm-legend{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:1rem;width:100%;max-width:400px}
+.cm-leg-item{font-size:12px;border-radius:var(--rs);padding:7px 10px;line-height:1.5}
+
+.slider-row{display:flex;align-items:center;gap:12px;margin:.75rem 0}
+.slider-row label{font-size:13px;color:var(--g400);min-width:120px}
+input[type=range]{flex:1;accent-color:var(--teal)}
+.slider-val{font-size:13px;font-weight:600;min-width:40px;color:var(--g900)}
+.stat-mini{font-size:12px;color:var(--g400);margin-top:4px}
+
+@media(max-width:500px){
+  .pros-cons{grid-template-columns:1fr}
+  .metric-grid{grid-template-columns:1fr}
+  nav{padding:0 .75rem}
+  .page{padding:1.5rem 1rem}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">PolBank Lab</div>
+  <button class="nav-btn active" onclick="show('p0',this)">Drzewo</button>
+  <button class="nav-btn" onclick="show('p1',this)">Las losowy</button>
+  <button class="nav-btn" onclick="show('p2',this)">Gradient Boosting</button>
+  <button class="nav-btn" onclick="show('p3',this)">Uczenie zespołowe</button>
+  <button class="nav-btn" onclick="show('p4',this)">Metryki i ocena</button>
+</nav>
+
+<!-- PAGE 0: DRZEWO -->
+<div class="page active" id="p0">
+  <h1>Drzewo decyzyjne</h1>
+  <p class="lead">Najprostszy interpretowalny algorytm klasyfikacji. Pyta o cechy transakcji po kolei i na każdym kroku dzieli dane na dwie grupy — aż dotrze do decyzji.</p>
+
+  <div class="analogy"><strong>Analogia</strong>Wyobraź sobie pracownika banku który sprawdza transakcję zadając pytania: "Czy kwota jest większa niż 1000 zł? Czy logowanie było w nocy? Czy to nowe urządzenie?" Każde pytanie zawęża podejrzenie. Drzewo robi dokładnie to samo — automatycznie.</div>
+
+  <h2>Jak działa</h2>
+  <p>Drzewo uczy się na danych treningowych szukając pytania (reguły podziału), które najlepiej oddziela fraudy od legalnych transakcji. Dla każdego węzła wybiera zmienną i próg które minimalizują "nieczystość" po podziale (miara Gini lub entropia). Powtarza to rekurencyjnie aż do osiągnięcia określonej głębokości lub minimalnej liczby próbek w liściu.</p>
+
+  <div class="card card-teal">
+    <div style="font-size:13px;color:var(--g700);line-height:1.8">
+      Przykład reguły odczytanej z drzewa:<br>
+      <strong>Jeśli V14 &lt; −5.2 i Amount &lt; 300 → fraud (pewność 94%)</strong><br>
+      Każdą taką ścieżkę można wytłumaczyć klientowi lub regulatorowi.
+    </div>
+  </div>
+
+  <h2>Kluczowe parametry</h2>
+  <div class="card">
+    <div class="param-row"><span class="param-name">max_depth</span><span class="param-desc">Maksymalna głębokość drzewa. Zbyt duża → overfitting.</span></div>
+    <div class="param-row"><span class="param-name">min_samples_leaf</span><span class="param-desc">Minimalna liczba próbek w liściu. Większa → prostsze drzewo.</span></div>
+    <div class="param-row"><span class="param-name">class_weight</span><span class="param-desc">'balanced' wyrównuje wpływ klas gdy fraudów jest mało.</span></div>
+    <div class="param-row"><span class="param-name">criterion</span><span class="param-desc">'gini' lub 'entropy' — miara nieczystości węzła.</span></div>
+  </div>
+
+  <h2>Zalety i ograniczenia</h2>
+  <div class="pros-cons">
+    <div class="pros"><strong>Zalety</strong>W pełni interpretowalny — można odczytać reguły. Szybki w treningu. Nie wymaga normalizacji danych. Działa dobrze jako punkt odniesienia.</div>
+    <div class="cons"><strong>Ograniczenia</strong>Silnie podatny na overfitting przy dużej głębokości. Niestabilny — mała zmiana danych daje inne drzewo. Słabsza jakość predykcji niż metody zespołowe.</div>
+  </div>
+
+  <h2>Overfitting — na co uważać</h2>
+  <p>Drzewo bez ograniczenia głębokości nauczy się danych treningowych na pamięć — każdą transakcję zaklasyfikuje poprawnie, ale na nowych danych będzie słabe. Widać to gdy dokładność na zbiorze treningowym jest bliska 100%, a na testowym znacznie niższa. Rozwiązanie: ograniczenie <code>max_depth</code> lub przycinanie drzewa (pruning).</p>
+</div>
+
+<!-- PAGE 1: LAS LOSOWY -->
+<div class="page" id="p1">
+  <h1>Las losowy</h1>
+  <p class="lead">Zbiór setek drzew decyzyjnych, każde trenowane na losowym podzbiorze danych i zmiennych. Predykcja = głosowanie większości.</p>
+
+  <div class="analogy"><strong>Analogia</strong>Zamiast jednego analityka kredytowego, decyzję podejmuje komitet 100 analityków — każdy widzi inne informacje i patrzy na inne cechy. Jeden może się mylić, ale 100 popełni mniej błędów. Im bardziej różnią się między sobą, tym lepszy komitet.</div>
+
+  <h2>Dwie kluczowe losowości</h2>
+  <div class="card">
+    <div class="param-row"><span class="param-name">Bootstrap sampling</span><span class="param-desc">Każde drzewo trenuje na losowo wybranym podzbiorze wierszy (z powtórzeniami). ~37% danych nie jest użytych — służą do oceny (out-of-bag error).</span></div>
+    <div class="param-row"><span class="param-name">Random feature selection</span><span class="param-desc">W każdym węźle losowany jest podzbiór zmiennych. Drzewa stają się mniej skorelowane — a to zmniejsza błąd zespołu.</span></div>
+  </div>
+
+  <h2>Kluczowe parametry</h2>
+  <div class="card">
+    <div class="param-row"><span class="param-name">n_estimators</span><span class="param-desc">Liczba drzew. Więcej = stabilniej, ale wolniej. Zwykle 100–500.</span></div>
+    <div class="param-row"><span class="param-name">max_features</span><span class="param-desc">Ile zmiennych losować w węźle. Domyślnie sqrt(n_features).</span></div>
+    <div class="param-row"><span class="param-name">max_depth</span><span class="param-desc">Głębokość każdego drzewa. Las toleruje głębsze drzewa niż pojedyncze drzewo.</span></div>
+    <div class="param-row"><span class="param-name">class_weight</span><span class="param-desc">'balanced' — niezbędne przy silnie niezbalansowanych klasach.</span></div>
+  </div>
+
+  <h2>Feature importance</h2>
+  <p>Las mierzy jak bardzo każda zmienna poprawia podziały we wszystkich drzewach. Zmienne z wysoką ważnością są kluczowe dla predykcji — ale uwaga: nie mówi to nic o kierunku wpływu (czy wysoka wartość oznacza fraud czy nie).</p>
+
+  <div class="pros-cons">
+    <div class="pros"><strong>Zalety</strong>Odporny na overfitting. Dobre wyniki bez dużego tuningu. Feature importance. Działa z brakującymi danymi. Równoległy trening (n_jobs=-1).</div>
+    <div class="cons"><strong>Ograniczenia</strong>Trudno wyjaśnić konkretną decyzję (problem dla AI Act). Wolniejszy niż pojedyncze drzewo. Dużo pamięci przy wielu drzewach.</div>
+  </div>
+
+  <h2>Porównanie z pojedynczym drzewem</h2>
+  <table>
+    <tr><th></th><th>Drzewo</th><th>Las losowy</th></tr>
+    <tr><td>Overfitting</td><td>Duże ryzyko</td><td>Znacznie mniejsze</td></tr>
+    <tr><td>Interpretowalność</td><td>Wysoka — widać reguły</td><td>Niska — "czarna skrzynka"</td></tr>
+    <tr><td>Jakość predykcji</td><td>Przeciętna</td><td>Dobra</td></tr>
+    <tr><td>Czas treningu</td><td>Bardzo szybki</td><td>Wolniejszy (100+ drzew)</td></tr>
+    <tr><td>Stabilność</td><td>Niska</td><td>Wysoka</td></tr>
+  </table>
+</div>
+
+<!-- PAGE 2: GRADIENT BOOSTING -->
+<div class="page" id="p2">
+  <h1>Gradient Boosting</h1>
+  <p class="lead">Sekwencja drzew, gdzie każde kolejne skupia się na błędach poprzedniego. Nie głosują — uczą się po kolei, korygując reszty.</p>
+
+  <div class="analogy"><strong>Analogia</strong>Egzamin poprawkowy: po pierwszym podejściu wiesz co oblałeś. Drugie podejście skupia się właśnie na tych pytaniach. Trzecie — na tym co dalej sprawiało problem. Każda runda poprawia to co było trudne, nie powtarza tego co już wiadomo.</div>
+
+  <h2>Jak działa — krok po kroku</h2>
+  <div class="card">
+    <div class="param-row"><span class="param-name">Krok 1</span><span class="param-desc">Trenuj pierwsze drzewo na danych. Oblicz błędy (reszty) — dla każdej transakcji: o ile model się pomylił?</span></div>
+    <div class="param-row"><span class="param-name">Krok 2</span><span class="param-desc">Trenuj drugie drzewo żeby przewidywało te reszty (nie oryginalne etykiety).</span></div>
+    <div class="param-row"><span class="param-name">Krok 3</span><span class="param-desc">Dodaj predykcję drugiego drzewa do pierwszego (pomnożoną przez learning_rate).</span></div>
+    <div class="param-row"><span class="param-name">Powtarzaj</span><span class="param-desc">Każde nowe drzewo koryguje błędy sumy wszystkich poprzednich.</span></div>
+  </div>
+
+  <h2>Kluczowe parametry</h2>
+  <div class="card">
+    <div class="param-row"><span class="param-name">n_estimators</span><span class="param-desc">Liczba drzew (kroków). Więcej = lepsza jakość, ale ryzyko overfitting.</span></div>
+    <div class="param-row"><span class="param-name">learning_rate</span><span class="param-desc">Jak mocno każde drzewo koryguje poprzednie. Małe (0.01–0.1) = stabilniej, potrzeba więcej drzew. Duże (0.5) = szybko, ale niestabilnie.</span></div>
+    <div class="param-row"><span class="param-name">max_depth</span><span class="param-desc">Głębokość każdego drzewa. Małe wartości (3–5) wystarczają i ograniczają overfitting.</span></div>
+    <div class="param-row"><span class="param-name">subsample</span><span class="param-desc">Ułamek danych używany do treningu każdego drzewa. 0.8 = stochastic gradient boosting, zmniejsza overfitting.</span></div>
+  </div>
+
+  <div class="card card-amber">
+    <div style="font-size:13px;color:var(--amber-d);line-height:1.8">
+      <strong style="display:block;margin-bottom:4px">Learning rate a liczba drzew</strong>
+      Małe learning_rate wymaga więcej drzew — ale daje stabilniejszy model. Reguła praktyczna: jeśli zmniejszasz learning_rate dwukrotnie, podwój n_estimators. Dobra kombinacja startowa: learning_rate=0.05, n_estimators=200.
+    </div>
+  </div>
+
+  <h2>Zalety i ograniczenia</h2>
+  <div class="pros-cons">
+    <div class="pros"><strong>Zalety</strong>Często najlepsza jakość predykcji. Elastyczny — działa z różnymi funkcjami straty. Dobrze radzi sobie z rzadkimi zdarzeniami (fraudy).</div>
+    <div class="cons"><strong>Ograniczenia</strong>Wolny trening (sekwencyjny, nie równoległy). Więcej hiperparametrów do tuningu. Podatny na overfitting przy dużym learning_rate. Trudny do wyjaśnienia.</div>
+  </div>
+</div>
+
+<!-- PAGE 3: ENSEMBLE -->
+<div class="page" id="p3">
+  <h1>Uczenie zespołowe</h1>
+  <p class="lead">Łączenie wielu modeli w jeden, żeby poprawić jakość predykcji. Różne podejścia — różne cele.</p>
+
+  <h2>Cztery główne metody</h2>
+
+  <div class="card card-teal">
+    <span class="badge b-teal">Bagging</span>
+    <p>Wiele modeli tego samego typu, trenowanych na różnych losowych podzbiorach danych. Redukuje wariancję — model staje się stabilniejszy. Przykład: Random Forest to bagging drzew decyzyjnych.</p>
+  </div>
+
+  <div class="card card-blue">
+    <span class="badge b-blue">Boosting</span>
+    <p>Modele trenowane sekwencyjnie — każdy na błędach poprzedniego. Redukuje obciążenie (bias) — model staje się coraz dokładniejszy. Przykład: Gradient Boosting, XGBoost, LightGBM.</p>
+  </div>
+
+  <div class="card card-amber">
+    <span class="badge b-amber">Voting</span>
+    <p>Różne typy modeli głosują — hard voting liczy głosy (wygrywa większość), soft voting uśrednia prawdopodobieństwa. Soft voting zazwyczaj lepszy, bo uwzględnia pewność każdego modelu.</p>
+    <div style="font-size:13px;color:var(--amber-d);margin-top:.5rem;background:var(--amber-l);border-radius:var(--rs);padding:.6rem .85rem">
+      Kiedy voting pomaga: gdy modele popełniają <strong>różne</strong> błędy. Gdy wszystkie mylą się na tych samych transakcjach — voting nic nie da.
+    </div>
+  </div>
+
+  <div class="card card-purple">
+    <span class="badge b-purple">Stacking</span>
+    <p>Predykcje modeli bazowych stają się cechami wejściowymi dla meta-modelu (zwykle prostej regresji logistycznej). Meta-model uczy się jak najlepiej łączyć predykcje. Najsilniejsza metoda, ale najdroższa obliczeniowo.</p>
+  </div>
+
+  <h2>Porównanie metod</h2>
+  <table>
+    <tr><th>Metoda</th><th>Trenowanie</th><th>Cel</th><th>Przykład</th></tr>
+    <tr><td>Bagging</td><td>Równolegle</td><td>Redukcja wariancji</td><td>Random Forest</td></tr>
+    <tr><td>Boosting</td><td>Sekwencyjnie</td><td>Redukcja obciążenia</td><td>Gradient Boosting</td></tr>
+    <tr><td>Voting</td><td>Niezależnie</td><td>Stabilność</td><td>VotingClassifier</td></tr>
+    <tr><td>Stacking</td><td>Dwuetapowo</td><td>Maksymalna jakość</td><td>StackingClassifier</td></tr>
+  </table>
+
+  <div class="analogy"><strong>Kiedy ensemble nie pomaga</strong>Jeśli wszystkie modele popełniają te same błędy — bo są podobne lub dane są zbyt skąpe — kombinowanie nic nie da. Różnorodność modeli to warunek konieczny żeby ensemble miał sens.</div>
+</div>
+
+<!-- PAGE 4: METRYKI -->
+<div class="page" id="p4">
+  <h1>Metryki oceny i macierz pomyłek</h1>
+  <p class="lead">Dokładność (accuracy) nie wystarczy gdy klasy są niezbalansowane. Poniżej wszystkie metryki które będą potrzebne na laboratorium.</p>
+
+  <h2>Macierz pomyłek</h2>
+  <p>Macierz pomyłek pokazuje ile razy model się pomylił i w którą stronę. Przy wykrywaniu fraudów kierunek pomyłki ma ogromne znaczenie biznesowe.</p>
+
+  <div class="cm-wrap">
+    <div style="font-size:12px;color:var(--g400);margin-bottom:.5rem;align-self:flex-start">Oś X = predykcja modelu &nbsp;|&nbsp; Oś Y = prawdziwa klasa</div>
+    <div class="cm-grid">
+      <div></div>
+      <div class="cm-header">Predykcja: Legalna</div>
+      <div class="cm-header">Predykcja: Fraud</div>
+      <div class="cm-label">Prawda: Legalna</div>
+      <div class="cm-tn">TN<span class="cm-desc">Prawdziwie negatywny — legalna transakcja, model powiedział "legalna"</span></div>
+      <div class="cm-fp">FP<span class="cm-desc">Fałszywy alarm — legalna transakcja, model powiedział "fraud"</span></div>
+      <div class="cm-label">Prawda: Fraud</div>
+      <div class="cm-fn">FN<span class="cm-desc">Przeoczony fraud — prawdziwy fraud, model powiedział "legalna"</span></div>
+      <div class="cm-tp">TP<span class="cm-desc">Prawdziwie pozytywny — prawdziwy fraud, model powiedział "fraud"</span></div>
+    </div>
+    <div class="cm-legend">
+      <div class="cm-leg-item" style="background:var(--red-l);color:var(--red-d)"><strong>FN — najgorszy błąd</strong><br>Fraud przeoczony — klient traci pieniądze, bank ponosi koszty zwrotu i reputacyjne.</div>
+      <div class="cm-leg-item" style="background:var(--amber-l);color:var(--amber-d)"><strong>FP — kosztowny błąd</strong><br>Fałszywy alarm — zablokowana karta dobrego klienta, koszt obsługi, utrata zaufania.</div>
+    </div>
+  </div>
+
+  <h2>Metryki obliczone z macierzy</h2>
+  <div class="metric-grid">
+    <div class="metric-card">
+      <div class="metric-name">Dokładność (accuracy)</div>
+      <div class="metric-formula">(TP + TN) / wszystkie</div>
+      <div class="metric-desc">Ile razy model miał rację ogółem. Myląca przy niezbalansowanych klasach — model zawsze mówiący "legalna" ma accuracy 99,8%.</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">Recall (czułość)</div>
+      <div class="metric-formula">TP / (TP + FN)</div>
+      <div class="metric-desc">Spośród wszystkich prawdziwych fraudów — ile wykryto. Recall = 0.85 znaczy: na 100 fraudów model wykrył 85. Priorytet gdy FN jest niedopuszczalny.</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">Precision (precyzja)</div>
+      <div class="metric-formula">TP / (TP + FP)</div>
+      <div class="metric-desc">Spośród wszystkich alarmów — ile było prawdziwymi fraudami. Precision = 0.90 znaczy: 9 na 10 zablokowanych transakcji to rzeczywiście fraudy. Priorytet gdy FP jest kosztowny.</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-name">F1-score</div>
+      <div class="metric-formula">2 × P × R / (P + R)</div>
+      <div class="metric-desc">Średnia harmoniczna Precision i Recall. Wysoki tylko gdy oba są jednocześnie przyzwoite. Dobry gdy chcemy równoważyć oba typy błędów.</div>
+    </div>
+  </div>
+
+  <h2>PR-AUC — pole pod krzywą Precision-Recall</h2>
+  <p>Zamiast oceniać model przy jednym progu (np. 0.5), krzywa PR pokazuje jak zmienia się Precision i Recall przy wszystkich możliwych progach jednocześnie. PR-AUC to pole pod tą krzywą — jedna liczba podsumowująca jakość modelu niezależnie od wybranego progu.</p>
+
+  <div class="chart-wrap">
+    <div class="chart-title">Krzywa Precision-Recall — interaktywna</div>
+    <div style="position:relative;height:280px;width:100%"><canvas id="pr-canvas"></canvas></div>
+    <div class="slider-row" style="margin-top:.75rem">
+      <label>Próg decyzyjny</label>
+      <input type="range" min="1" max="99" value="50" step="1" id="pr-thresh" oninput="updatePR(this.value)">
+      <span class="slider-val" id="pr-tv">0.50</span>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:.5rem" id="pr-stats"></div>
+    <div class="chart-sub" id="pr-msg"></div>
+  </div>
+
+  <h2>Próg decyzyjny</h2>
+  <p>Model klasyfikuje transakcję jako fraud gdy prawdopodobieństwo przekracza próg (domyślnie 0.5). Obniżając próg — więcej fraudów zostaje wykrytych (wyższy Recall), ale więcej fałszywych alarmów (niższa Precision). Podnosząc próg — odwrotnie. Wybór progu to decyzja biznesowa, nie techniczna.</p>
+
+  <table>
+    <tr><th>Sytuacja</th><th>Zalecany próg</th><th>Efekt</th></tr>
+    <tr><td>Fraud bardzo kosztowny (duże kwoty)</td><td>Niski (0.2–0.3)</td><td>Wysoki Recall, więcej fałszywych alarmów</td></tr>
+    <tr><td>Fałszywy alarm kosztowny (VIP klienci)</td><td>Wysoki (0.7–0.8)</td><td>Wysoka Precision, część fraudów przeoczona</td></tr>
+    <tr><td>Balans — typowy bank detaliczny</td><td>Optymalny F1 (0.4–0.6)</td><td>Równowaga obu błędów</td></tr>
+  </table>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+function show(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+  if (id === 'p4' && !prChart) buildPR();
+}
+
+let prChart = null;
+
+function prCurve(q) {
+  const pts = [];
+  for (let r=0;r<=1;r+=0.01) {
+    const p = q==='good'
+      ? Math.min(1, 0.95 - 0.38*Math.pow(r,1.7))
+      : Math.min(1, 0.65 - 0.58*Math.pow(r,1.1));
+    pts.push({x:r, y:Math.max(0,p)});
+  }
+  return pts;
+}
+function auc(pts){let a=0;for(let i=1;i<pts.length;i++)a+=(pts[i].x-pts[i-1].x)*(pts[i].y+pts[i-1].y)/2;return a;}
+function nearest(curve,r){let b=curve[0],d=999;for(const p of curve){const dd=Math.abs(p.x-r);if(dd<d){d=dd;b=p;}}return b;}
+
+const gc=prCurve('good'), oc=prCurve('ok');
+const aucG=auc(gc).toFixed(2), aucO=auc(oc).toFixed(2);
+
+function buildPR(){
+  const ctx=document.getElementById('pr-canvas').getContext('2d');
+  prChart=new Chart(ctx,{
+    type:'scatter',
+    data:{datasets:[
+      {label:`Model A — PR-AUC = ${aucG}`,data:gc,showLine:true,borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.08)',borderWidth:2.5,pointRadius:0,fill:true,tension:.3},
+      {label:`Model B — PR-AUC = ${aucO}`,data:oc,showLine:true,borderColor:'#378ADD',backgroundColor:'rgba(55,138,221,.08)',borderWidth:2.5,pointRadius:0,fill:true,tension:.3},
+      {label:'Wybrany próg (A)',data:[],pointRadius:8,pointBackgroundColor:'#085041',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false},
+      {label:'Wybrany próg (B)',data:[],pointRadius:8,pointBackgroundColor:'#0C447C',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false}
+    ]},
+    options:{
+      animation:false,responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:'top',labels:{color:'#444',font:{size:12},boxWidth:14,padding:14}}},
+      scales:{
+        x:{type:'linear',min:0,max:1,title:{display:true,text:'Recall — ile fraudów wykryto',color:'#888',font:{size:12}},ticks:{color:'#888',callback:v=>(v*100).toFixed(0)+'%'},grid:{color:'rgba(0,0,0,.06)'}},
+        y:{type:'linear',min:0,max:1,title:{display:true,text:'Precision — trafność alarmów',color:'#888',font:{size:12}},ticks:{color:'#888',callback:v=>(v*100).toFixed(0)+'%'},grid:{color:'rgba(0,0,0,.06)'}}
+      }
+    }
+  });
+  updatePR(50);
+}
+
+function updatePR(v){
+  document.getElementById('pr-tv').textContent=(v/100).toFixed(2);
+  const r=v/100;
+  const ptG=nearest(gc,r), ptO=nearest(oc,r);
+  if(prChart){
+    prChart.data.datasets[2].data=[{x:ptG.x,y:ptG.y}];
+    prChart.data.datasets[3].data=[{x:ptO.x,y:ptO.y}];
+    prChart.update('none');
+  }
+  const f1=(ptG.x+ptG.y>0)?2*ptG.x*ptG.y/(ptG.x+ptG.y):0;
+  const stats=document.getElementById('pr-stats');
+  stats.innerHTML=`
+    <div style="background:var(--g100);border-radius:6px;padding:8px 10px;font-size:12px"><div style="color:var(--g400);margin-bottom:2px">Precision (A)</div><div style="font-size:16px;font-weight:600;color:${ptG.y>0.6?'#0F6E56':ptG.y<0.3?'#A32D2D':'#444'}">${(ptG.y*100).toFixed(0)}%</div></div>
+    <div style="background:var(--g100);border-radius:6px;padding:8px 10px;font-size:12px"><div style="color:var(--g400);margin-bottom:2px">Recall (A)</div><div style="font-size:16px;font-weight:600;color:${ptG.x>0.7?'#0F6E56':ptG.x<0.3?'#A32D2D':'#444'}">${(ptG.x*100).toFixed(0)}%</div></div>
+    <div style="background:var(--g100);border-radius:6px;padding:8px 10px;font-size:12px"><div style="color:var(--g400);margin-bottom:2px">F1 (A)</div><div style="font-size:16px;font-weight:600;color:${f1>0.6?'#0F6E56':f1<0.3?'#A32D2D':'#444'}">${f1.toFixed(2)}</div></div>`;
+  const msg=r<0.3
+    ?'Wysoki próg: model alarmuje rzadko i jest pewny swoich decyzji — ale pomija wiele fraudów.'
+    :r>0.75
+    ?'Niski próg: model wykrywa niemal wszystkie fraudy — ale generuje dużo fałszywych alarmów.'
+    :'Środkowy próg: balans Precision i Recall. F1 jest tu zazwyczaj najwyższy.';
+  document.getElementById('pr-msg').textContent=msg;
+}
+</script>
+</body>
+</html>
